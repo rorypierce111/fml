@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .city {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .temp {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Weather Dashboard</h1>
+
+{% for item in results %}
+    <div class="card">
+        <div class="city">{{ item.city }}</div>
+
+        {% if item.temperature %}
+            <div class="temp">
+                {{ item.temperature }}°C — {{ item.conditions }}
+            </div>
+        {% else %}
+            <div style="color: red;">
+                Error fetching weather
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}
+
+</body>
+</html>
