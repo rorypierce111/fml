@@ -9,4 +9,4 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-CMD gunicorn -b 0.0.0.0:$PORT app:app
+CMD ["sh", "-c", "ls -la && gunicorn -b 0.0.0.0:$PORT app:app"]
