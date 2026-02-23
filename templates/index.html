@@ -1,55 +1,222 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --muted: #64748b;
+            --text: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f4f4f4;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(56, 189, 248, 0.08), transparent);
         }
 
         h1 {
-            color: #333;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 1.5rem;
+            letter-spacing: -0.02em;
         }
 
-        .card {
-            background: white;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        .controls {
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 2rem;
         }
 
-        .city {
-            font-size: 20px;
-            font-weight: bold;
+        .controls label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
         }
 
-        .temp {
-            font-size: 18px;
+        .city-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--card);
+            border: 1px solid rgba(100, 116, 139, 0.4);
+            border-radius: 10px;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .city-select:hover,
+        .city-select:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        .weather-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+
+        .weather-card.empty {
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .weather-card .city-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .weather-card .temp {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.03em;
+            margin-bottom: 0.25rem;
+        }
+
+        .weather-card .conditions {
+            font-size: 1rem;
+            color: var(--muted);
+            text-transform: capitalize;
+        }
+
+        .weather-card .error {
+            color: #f87171;
+        }
+
+        .weather-card.loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--muted);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
 
-<h1>Weather Dashboard</h1>
+    <h1>Weather Dashboard</h1>
 
-{% for item in results %}
-    <div class="card">
-        <div class="city">{{ item.city }}</div>
+    <div class="controls">
+        <label for="city-select">Select City</label>
+        <select id="city-select" class="city-select" aria-label="Choose a city">
+            {% if cities %}
+                {% for city in cities %}
+                <option value="{{ city }}"
+                    {% if initial_weather and initial_weather.city == city %}selected{% endif %}>
+                    {{ city }}
+                </option>
+                {% endfor %}
+            {% else %}
+                <option value="">No cities saved</option>
+            {% endif %}
+        </select>
+    </div>
 
-        {% if item.temperature %}
-            <div class="temp">
-                {{ item.temperature }}°C — {{ item.conditions }}
-            </div>
+    <div id="weather-card" class="weather-card {% if not initial_weather %}empty{% endif %}">
+        {% if initial_weather %}
+            {% if initial_weather.temperature is defined %}
+                <div class="city-name">{{ initial_weather.city }}</div>
+                <div class="temp">{{ initial_weather.temperature }}°C</div>
+                <div class="conditions">{{ initial_weather.conditions }}</div>
+            {% else %}
+                <div class="city-name">{{ initial_weather.city }}</div>
+                <div class="error">Error fetching weather</div>
+            {% endif %}
+        {% elif cities %}
+            <div class="conditions">Select a city above</div>
         {% else %}
-            <div style="color: red;">
-                Error fetching weather
-            </div>
+            <div class="conditions">No saved cities. Add cities to the database first.</div>
         {% endif %}
     </div>
-{% endfor %}
+
+    <script>
+        const citySelect = document.getElementById('city-select');
+        const weatherCard = document.getElementById('weather-card');
+
+        citySelect.addEventListener('change', async () => {
+            const city = citySelect.value;
+            if (!city) {
+                weatherCard.innerHTML = '<div class="conditions">Select a city above</div>';
+                weatherCard.classList.add('empty');
+                return;
+            }
+
+            weatherCard.classList.remove('empty');
+            weatherCard.classList.add('loading');
+            weatherCard.innerHTML = `
+                <span class="loading-spinner"></span>
+                <span class="conditions">Loading weather for ${city}...</span>
+            `;
+
+            try {
+                const res = await fetch(`/weather?city=${encodeURIComponent(city)}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    weatherCard.innerHTML = `
+                        <div class="city-name">${data.city}</div>
+                        <div class="error">Error fetching weather</div>
+                    `;
+                } else {
+                    weatherCard.innerHTML = `
+                        <div class="city-name">${data.city}</div>
+                        <div class="temp">${data.temperature}°C</div>
+                        <div class="conditions">${data.conditions}</div>
+                    `;
+                }
+            } catch (err) {
+                weatherCard.innerHTML = `
+                    <div class="city-name">${city}</div>
+                    <div class="error">Failed to load weather</div>
+                `;
+            } finally {
+                weatherCard.classList.remove('loading');
+            }
+        });
+    </script>
 
 </body>
 </html>

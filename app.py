@@ -1,7 +1,7 @@
 import os
 import requests
 import psycopg
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
 
 # Load environment variables from .env
@@ -66,8 +66,12 @@ def get_weather(city):
 def index():
     try:
         cities = get_cities()
-        results = [get_weather(city) for city in cities]
-        return render_template("index.html", results=results)
+        initial_weather = get_weather(cities[0]) if cities else None
+        return render_template(
+            "index.html",
+            cities=cities,
+            initial_weather=initial_weather,
+        )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -76,6 +80,10 @@ def index():
 @app.route("/weather")
 def weather_json():
     try:
+        city = request.args.get("city")
+        if city:
+            result = get_weather(city)
+            return jsonify(result)
         cities = get_cities()
         results = [get_weather(city) for city in cities]
         return jsonify(results)
