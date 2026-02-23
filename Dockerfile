@@ -9,8 +9,4 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-# IMPORTANT: remove EXPOSE 5000
-# OR change it to 8080 for clarity
-EXPOSE 8080
-
 CMD gunicorn -b 0.0.0.0:$PORT app:app
