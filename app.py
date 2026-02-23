@@ -108,12 +108,4 @@ def weather_json():
 # Railway health endpoint
 @app.route("/health")
 def health():
-    try:
-        # Minimal DB check
-        with psycopg.connect(DATABASE_URL, sslmode="require") as conn:
-            pass
-
-        return {"status": "ok"}
-
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}, 500
+    return "ok", 200
