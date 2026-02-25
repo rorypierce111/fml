@@ -14,7 +14,7 @@ WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
 
 # -----------------------------
-# DATABASE HELPERSmiomreogmeriongoier
+# DATABASE coment
 # -----------------------------
 def get_conn():
     if not DATABASE_URL:
